@@ -14,7 +14,7 @@ FIGURES_DIR = RESULTS_DIR / "figures"
 
 USER_AGENT = "SocialContagionTrends/1.0 (academic research project)"
 _last_request_time = 0.0
-RATE_LIMIT_SECONDS = 1.5
+RATE_LIMIT_SECONDS = 1.0
 
 
 def fetch_json(url: str) -> dict:

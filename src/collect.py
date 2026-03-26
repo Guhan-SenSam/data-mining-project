@@ -55,7 +55,7 @@ def flatten_comment_tree(children: list, post_id: str) -> list[dict]:
     return comments
 
 
-def fetch_posts(subreddit: str, sort: str = "new", limit: int = 100, max_pages: int = 4) -> list[dict]:
+def fetch_posts(subreddit: str, sort: str = "new", limit: int = 25, max_pages: int = 1) -> list[dict]:
     """Fetch posts from a subreddit, paginating through results."""
     posts = []
     after = None
@@ -97,7 +97,7 @@ def collect_subreddit(subreddit: str) -> tuple[list[dict], list[dict]]:
     all_posts = []
     all_comments = []
 
-    for sort in ("hot", "new"):
+    for sort in ("hot",):
         posts = fetch_posts(subreddit, sort=sort)
         all_posts.extend(posts)
 

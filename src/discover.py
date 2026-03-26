@@ -3,7 +3,7 @@
 import json
 import os
 
-import google.generativeai as genai
+from google import genai
 
 from src.utils import DATA_DIR
 
@@ -21,6 +21,15 @@ discuss habits, self-improvement, and lifestyle changes. Include categories like
 
 Return ONLY a JSON array of subreddit names, no other text. Example: ["Fitness", "running"]"""
 
+FALLBACK_SUBREDDITS = [
+    "Fitness", "running", "bodyweightfitness", "gym", "loseit",
+    "EatCheapAndHealthy", "MealPrepSunday", "GetStudying", "studytips",
+    "productivity", "getdisciplined", "selfimprovement", "DecidingToBeBetter",
+    "Meditation", "mindfulness", "sleep", "writing", "drawing",
+    "theXeffect", "NonZeroDay", "HabitExchange", "dailygoals",
+    "C25K", "flexibility", "yoga", "intermittentfasting"
+]
+
 
 def discover_subreddits() -> list[str]:
     """Return list of subreddit names, using cache if available."""
@@ -29,16 +38,29 @@ def discover_subreddits() -> list[str]:
 
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        raise ValueError("GEMINI_API_KEY environment variable is required")
+        print("No GEMINI_API_KEY set. Using fallback subreddit list.")
+        _save(FALLBACK_SUBREDDITS)
+        return FALLBACK_SUBREDDITS
 
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-2.0-flash")
-    response = model.generate_content(PROMPT)
+    try:
+        client = genai.Client(api_key=api_key)
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=PROMPT,
+        )
+        subreddits = json.loads(response.text)
+    except Exception as e:
+        print(f"Gemini API call failed: {e}")
+        print("Using fallback subreddit list.")
+        subreddits = FALLBACK_SUBREDDITS
 
-    subreddits = json.loads(response.text)
+    _save(subreddits)
+    return subreddits
+
+
+def _save(subreddits: list[str]) -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     SUBREDDITS_PATH.write_text(json.dumps(subreddits, indent=2))
-    return subreddits
 
 
 if __name__ == "__main__":
